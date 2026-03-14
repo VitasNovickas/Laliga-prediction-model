@@ -8,7 +8,7 @@ for i in range(1,20):
              'FTHG', 'FTAG', 
              'HS', 'HST', 'HC', 'HF', 'HY', 'HR',
              'AS', 'AST', 'AC', 'AF', 'AY', 'AR']
-  filename2526 = rf"C:\coding\SideProjects\football_projects\LaLiga_Pred\data\raw_data\SP1({i}).csv"
+  filename2526 = rf"The direction of football data that was donwloaded from football-data.co.uk"
   dfnew = pd.read_csv(filename2526)
   df = dfnew[[col for col in keep_cols if col in dfnew.columns]]
   df["Date"] = pd.to_datetime(df["Date"], dayfirst=True)
