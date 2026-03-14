@@ -12,7 +12,7 @@ The best performing variant is **top4 with a 20-game rolling window**.
 The pipeline has three stages:
 
 1. **Data prep** (`data_prep/refdata.py`) — reads raw match CSVs, engineers features, and outputs a JSON training file
-2. **Training** (`train.py`) — runs grid search cross-validation across 4 model variants and saves the best model for each
+2. **Training** (`model1.py`) — runs grid search cross-validation across 4 model variants and saves the best model for each
 3. **Prediction** (`predict.py`) — loads a saved model and outputs top 4 / title probabilities for the current season
 
 ---
