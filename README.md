@@ -1,4 +1,3 @@
-# Laliga-prediction-model
 # LaLiga Season Finish Predictor
 
 An XGBoost-based machine learning model that predicts the probability of a LaLiga team finishing in the **top 4** or winning the **title (top 1)** based on in-season performance statistics. Trained on 20 seasons of historical LaLiga data from [football-data.co.uk](https://www.football-data.co.uk/).
@@ -11,9 +10,9 @@ The best performing variant is **top4 with a 20-game rolling window**.
 
 The pipeline has three stages:
 
-1. **Data prep** (`data_prep/refdata.py`) — reads raw match CSVs, engineers features, and outputs a JSON training file
-2. **Training** (`model1.py`) — runs grid search cross-validation across 4 model variants and saves the best model for each
-3. **Prediction** (`predict.py`) — loads a saved model and outputs top 4 / title probabilities for the current season
+1. **Data prep** (`refdata.py`) — reads raw match CSVs, engineers features, and outputs a JSON training file
+2. **Training** (`model/model1.py`) — runs grid search cross-validation and saves the best model
+3. **Prediction** (`data.py`) — loads a saved model and outputs top 4 / title probabilities for the current season
 
 ---
 
@@ -22,8 +21,8 @@ The pipeline has three stages:
 Clone the repo and install dependencies:
 
 ```bash
-git clone https://github.com/your-username/laliga-predictor.git
-cd laliga-predictor
+git clone https://github.com/VitasNovickas/Laliga-prediction-model.git
+cd Laliga-prediction-model
 pip install -r requirements.txt
 ```
 
@@ -31,51 +30,45 @@ pip install -r requirements.txt
 
 ## Data setup
 
-Download the LaLiga season files (`SP1.csv`) from [football-data.co.uk](https://www.football-data.co.uk/spainm.php) and place them in `data/raw_data/`. Name them sequentially:
+Download the LaLiga season files (`SP1.csv`) from [football-data.co.uk](https://www.football-data.co.uk/spainm.php) and place them in a local folder. Name them sequentially:
 
 ```
-data/raw_data/SP1(1).csv    ← most recent season
-data/raw_data/SP1(2).csv
+SP1(1).csv    ← most recent season
+SP1(2).csv
 ...
-data/raw_data/SP1(20).csv   ← oldest season
+SP1(20).csv   ← oldest season
 ```
 
-Then run the data prep script to generate the training file:
+Update the path at the top of `refdata.py` to point to your folder, then run:
 
 ```bash
-python data_prep/refdata.py
+python refdata.py
 ```
 
-This outputs `data/training_data/20Y_LaLiga_data.json`.
+This outputs the training JSON to `traingingdata/`.
 
-For the current season, build a separate JSON in the same format and place it at:
-
-```
-data/current_season/2526_LaLiga.json
-```
+For the current season, place the current season JSON in `laliga2526/`.
 
 ---
 
 ## Training
 
-To train all 4 model variants (top1/top4 × window10/window20):
+Run the model training script:
 
 ```bash
-python train.py
+python model/model1.py
 ```
 
-This runs a grid search for each variant, prints the test AUC score, and saves the best model to `model/saved/`. A summary of all scores is saved to `model/saved/results.json`.
-
-To train a specific variant only, edit the `MODELS` list in `config.py`.
+This runs a grid search over hyperparameters, prints the test AUC score, and saves the best model to `model/`.
 
 ---
 
 ## Prediction
 
-To run predictions for the current season across all 4 variants:
+Run predictions for the current season:
 
 ```bash
-python predict.py
+python data.py
 ```
 
 Example output for the top4 model:
@@ -98,24 +91,13 @@ Probabilities are normalised to sum to 100% across the league. Teams below 1% ar
 ## Project structure
 
 ```
-LaLiga_Pred/
-├── config.py                  # model variants and feature lists
-├── train.py                   # training + grid search
-├── predict.py                 # load model and predict current season
-├── data_prep/
-│   └── refdata.py             # raw CSV → feature JSON pipeline
+Laliga-prediction-model/
+├── refdata.py              # raw CSV → feature JSON pipeline
+├── data.py                 # load model and predict current season
 ├── model/
-│   └── saved/
-│       ├── top1_w10.json
-│       ├── top1_w20.json
-│       ├── top4_w10.json
-│       ├── top4_w20.json
-│       └── results.json       # AUC scores for each variant
-├── data/
-│   ├── raw_data/              # raw CSVs — not committed
-│   ├── training_data/         # engineered training JSON — not committed
-│   └── current_season/        # current season JSON — not committed
-├── requirements.txt
+│   └── model1.py           # training + grid search
+├── traingingdata/          # engineered training JSON
+├── laliga2526/             # current season data
 └── README.md
 ```
 
@@ -172,7 +154,7 @@ Two window sizes are trained separately (10 and 20 games) because shorter window
 
 ### Season
 
-The `season` feature (encoded as a number) allows the model to account for gradual changes in the league over time — for example shifts in the overall competitiveness or the dominance of certain clubs across eras.
+The `season` feature (encoded as a number) allows the model to account for gradual changes in the league over time — for example shifts in overall competitiveness or the dominance of certain clubs across eras.
 
 ---
 
