@@ -5,10 +5,10 @@ from sklearn.metrics import roc_auc_score, ndcg_score
 from sklearn.model_selection import GridSearchCV
 
 df = pd.read_json(
-    r'C:\coding\SideProjects\football_projects\LaLiga_Pred\data\traingingdata\20Y_LaLiga_data_top1_10.json',
+    r'The file path of training data',
     orient='index'
 )
-current_season = pd.read_json(r'C:\coding\SideProjects\football_projects\LaLiga_Pred\data\laliga2526\2526LaLiga_data.json', orient='index')
+current_season = pd.read_json(r'The file path of LaLiga 25/26 season data', orient='index')
 
 FEATURES = [
         "Games",
