@@ -7,7 +7,7 @@ keep_cols = ['Date', 'HomeTeam', 'AwayTeam', 'FTR',
             'FTHG', 'FTAG', 
             'HS', 'HST', 'HC', 'HF', 'HY', 'HR',
             'AS', 'AST', 'AC', 'AF', 'AY', 'AR']
-filename2526 = r"C:\coding\SideProjects\football_projects\LaLiga_Pred\data\laliga2526\SP1.csv"
+filename2526 = r"The direction of football data that was donwloaded from football-data.co.uk"
 dfnew = pd.read_csv(filename2526)
 df = dfnew[[col for col in keep_cols if col in dfnew.columns]]
 df["Date"] = pd.to_datetime(df["Date"], dayfirst=True)
