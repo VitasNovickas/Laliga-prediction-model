@@ -56,16 +56,6 @@ This runs a grid search over hyperparameters, prints the test AUC score, saves t
 
 ---
 
-## Prediction
-
-Run predictions for the current season:
-
-```bash
-python data.py
-```
-
----
-
 ## Project structure
 
 ```
