@@ -11,21 +11,8 @@ The best performing variant is **top4 with a 20-game rolling window**.
 The pipeline has three stages:
 
 1. **Data prep** (`refdata.py`) — reads raw match CSVs, engineers features, and outputs a JSON training file
-2. **Training** (`model/model1.py`) — runs grid search cross-validation and saves the best model
-3. **Prediction** (`data.py`) — loads a saved model and outputs top 4 / title probabilities for the current season
-
----
-
-## Installation
-
-Clone the repo and install dependencies:
-
-```bash
-git clone https://github.com/VitasNovickas/Laliga-prediction-model.git
-cd Laliga-prediction-model
-pip install -r requirements.txt
-```
-
+2. **Data** (`data.py`) — reads raw match of the most recent season CSV and outputs a JSON file with the same features as the training data 
+3. **Training and Predicting** (`model/model1.py`) — run grid search cross-validation and saves the best model and at the end the program also does predictions using the most recent league data from the data.py.(it also possible to make the predictions in a separe file because the and its paremeters are saved)
 ---
 
 ## Data setup
