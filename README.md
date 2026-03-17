@@ -11,8 +11,9 @@ The best performing variant is **top4 with a 20-game rolling window**.
 The pipeline has three stages:
 
 1. **Data prep** (`refdata.py`) — reads raw match CSVs, engineers features, and outputs a JSON training file
-2. **Data** (`data.py`) — reads raw match of the most recent season CSV and outputs a JSON file with the same features as the training data 
-3. **Training and Predicting** (`model/model1.py`) — run grid search cross-validation and saves the best model and at the end the program also does predictions using the most recent league data from the data.py.(it also possible to make the predictions in a separe file because the and its paremeters are saved)
+2. **Data** (`data.py`) — reads the most recent season's raw match CSV and outputs a JSON file with the same features as the training data
+3. **Training and predicting** (`model/model1.py`) — runs grid search cross-validation, saves the best model, and at the end outputs predictions using the most recent league data from `data.py`. It is also possible to make predictions in a separate file since the model and its parameters are saved.
+
 ---
 
 ## Data setup
@@ -20,7 +21,7 @@ The pipeline has three stages:
 Download the LaLiga season files (`SP1.csv`) from [football-data.co.uk](https://www.football-data.co.uk/spainm.php) and place them in a local folder. Name them sequentially:
 
 ```
-SP1(1).csv    ← most recent season
+SP1(1).csv    ← the latest finished season
 SP1(2).csv
 ...
 SP1(20).csv   ← oldest season
@@ -32,9 +33,14 @@ Update the path at the top of `refdata.py` to point to your folder, then run:
 python refdata.py
 ```
 
-This outputs the training JSON to `traingingdata/`.
+This outputs the training JSON.
 
-For the current season, place the current season JSON in `laliga2526/`.
+For the current season, update the path at the top of `data.py` and run it. The script will output the data which the model will use to predict. Place the current season JSON in `laliga2526/`.
+
+**Important note:** `refdata.py` and `data.py` are set up to predict who will win the league, with an emphasis on recent performance. To change this:
+
+- From top 1 to top 4: in `refdata.py` go to line 60 and change `table['top1'] = (table['rank'] <= 1).astype(int)` to `table['top4'] = (table['rank'] <= 4).astype(int)`. In `model1.py` change `y = df["top1"]` to `y = df["top4"]`.
+- From short term to long term: in `refdata.py` go to lines 41 and 53 and change the number in `.tail()` to however many games have already been played in the current season, and update the column name accordingly. In `model1.py` update the feature names `"Win_rate10"` and `"Wstrk_10"` to match.
 
 ---
 
@@ -46,7 +52,7 @@ Run the model training script:
 python model/model1.py
 ```
 
-This runs a grid search over hyperparameters, prints the test AUC score, and saves the best model to `model/`.
+This runs a grid search over hyperparameters, prints the test AUC score, saves the best model to `model/`, and outputs predictions so you can see the results immediately.
 
 ---
 
@@ -58,21 +64,6 @@ Run predictions for the current season:
 python data.py
 ```
 
-Example output for the top4 model:
-
-```
---- top4_w20 predictions ---
-        Team  prob%
- Real Madrid   81.7
-   Barcelona   55.0
-  Ath Madrid   12.1
-  Villarreal    9.5
-      Girona    3.2
-         ...
-```
-
-Probabilities are normalised to sum to 100% across the league. Teams below 1% are shown as 0%.
-
 ---
 
 ## Project structure
@@ -80,7 +71,7 @@ Probabilities are normalised to sum to 100% across the league. Teams below 1% ar
 ```
 Laliga-prediction-model/
 ├── refdata.py              # raw CSV → feature JSON pipeline
-├── data.py                 # load model and predict current season
+├── data.py                 # current season data prep and prediction
 ├── model/
 │   └── model1.py           # training + grid search
 ├── traingingdata/          # engineered training JSON
@@ -102,22 +93,22 @@ Features were chosen to capture three things: **attacking quality**, **defensive
 | `Gsh` | Goals per shot | Finishing efficiency — separates clinical teams from wasteful ones |
 | `GSoT` | Goals per shot on target | Conversion rate once the shot is on target — strong proxy for striker quality |
 
-### Volume per 90 minutes
+### Volume per game
 
-Per-90 stats are used instead of raw totals to remove the effect of games played, making mid-season snapshots comparable to end-of-season ones.
+Per-game stats are used instead of raw totals to remove the effect of games played, making mid-season snapshots comparable to end-of-season ones.
 
 | Feature | Description |
 |--------|-------------|
-| `G90` | Goals scored per 90 minutes |
-| `S90` | Shots attempted per 90 minutes |
-| `SoT90` | Shots on target per 90 minutes |
-| `C90` | Corners won per 90 minutes |
-| `AG90` | Goals conceded per 90 minutes |
-| `AS90` | Shots conceded per 90 minutes |
-| `ASoT90` | Shots on target conceded per 90 minutes |
-| `F90` | Fouls committed per 90 minutes |
-| `Y90` | Yellow cards per 90 minutes |
-| `R90` | Red cards per 90 minutes |
+| `G90` | Goals scored per game |
+| `S90` | Shots attempted per game |
+| `SoT90` | Shots on target per game |
+| `C90` | Corners won per game |
+| `AG90` | Goals conceded per game |
+| `AS90` | Shots conceded per game |
+| `ASoT90` | Shots on target conceded per game |
+| `F90` | Fouls committed per game |
+| `Y90` | Yellow cards per game |
+| `R90` | Red cards per game |
 
 Defensive stats (`AG90`, `AS90`, `ASoT90`) matter as much as attacking ones — top 4 teams in LaLiga consistently have among the lowest goals conceded in the league.
 
@@ -128,7 +119,7 @@ Defensive stats (`AG90`, `AS90`, `ASoT90`) matter as much as attacking ones — 
 | `proxy_xG` | `TST × 0.3 + (TS - TST) × 0.05` | Approximates expected goals for — weighted by shot quality (on target vs off) |
 | `proxy_xGA` | `ASoT × 0.3 + (AS - ASoT) × 0.05` | Approximates expected goals against — captures defensive vulnerability |
 
-These are proxy values since full xG data is not available in the football-data.co.uk dataset. The weights (0.3 for on-target, 0.05 for off-target) reflect typical conversion rate differences between shot types.
+These are proxy values since full xG data is not available in the football-data.co.uk dataset. The weights (0.3 for on-target, 0.05 for off-target) reflect typical conversion rate differences between shot types. Since accessing these advanced statistics directly is not feasible, these approximations introduce some degree of uncertainty into the model.
 
 ### Recent form
 
@@ -148,7 +139,7 @@ The `season` feature (encoded as a number) allows the model to account for gradu
 ## What was deliberately excluded
 
 - **Points total and league position** — these directly encode the outcome and would cause data leakage
-- **Win / Draw / Loss raw counts** — replaced by per-90 rates and form windows which are more informative
+- **Win / Draw / Loss raw counts** — replaced by per-game rates and form windows which are more informative
 - **Betting odds columns** — stripped from the raw data entirely as they are not causal features
 - **Team name** — not used as a feature since the model should generalise to promoted teams and not simply memorise that Real Madrid usually finishes top
 
